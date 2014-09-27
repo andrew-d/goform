@@ -1,0 +1,69 @@
+{{ define "title" }}Admin Page{{ end }}
+
+{{ define "content" }}
+	<h2>Admin Page</h2>
+
+	<h3>Current Users</h3>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+				<th>Token</th>
+			</tr>
+		</thead>
+		<tbody>
+		{{ range .respondents }}
+			<tr>
+				<td>{{ .ID }}</td>
+				<td>{{ .Name }}</td>
+				<td><a href="/form?token={{ .Token }}">{{ .Token }}</a></td>
+			</tr>
+		{{ end }}
+		</tbody>
+	</table>
+
+	<h3>Responses</h3>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Respondent</th>
+				<th>Item</th>
+				<th>Quantity</th>
+				<th>Max Price</th>
+				<th>Notes</th>
+			</tr>
+		</thead>
+		<tbody>
+		{{ range .responses }}
+			<tr>
+				<td>{{ .ID }}</td>
+				<td>{{ .Respondent }}</td>
+				<td>{{ .Item }}</td>
+				<td>{{ .Quantity }}</td>
+				<td>{{ .MaxPrice }}</td>
+				<td>{{ .Notes }}</td>
+			</tr>
+		{{ end }}
+		</tbody>
+	</table>
+
+	<h3>Add Respondent</h3>
+	<form class="form-horizontal" role="form" action="/admin/respondent" method="POST">
+		<div class="form-group">
+			<label for="inputName" class="col-sm-2 control-label">Name</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" id="inputName" name="name" placeholder="Name">
+			</div>
+		</div>
+
+		<input type="hidden" name="csrf_token" value="{{ .csrf_token }}">
+
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" class="btn btn-primary">Add</button>
+			</div>
+		</div>
+	</form>
+{{ end }}

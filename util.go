@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
+	"crypto/rand"
 )
+
+type M map[string]interface{}
 
 // renderTemplate is a wrapper around template.ExecuteTemplate.
 // It writes into a bytes.Buffer before writing to the http.ResponseWriter to catch
 // any errors resulting from populating the template.
-func renderTemplate(w http.ResponseWriter, name string, data map[string]interface{}) error {
+func renderTemplate(w http.ResponseWriter, name string, data M) error {
 	// Ensure the template exists in the map.
 	tmpl, ok := templates[name]
 	if !ok {
@@ -32,18 +33,31 @@ func renderTemplate(w http.ResponseWriter, name string, data map[string]interfac
 	return nil
 }
 
-func ServeAsset(name, mime string) httprouter.Handle {
+func ServeAsset(name, mime string) http.Handler {
 	// Assert that the asset exists.
 	_, err := Asset(name)
 	if err != nil {
 		panic(fmt.Sprintf("asset named '%s' does not exist", name))
 	}
 
-	handler := func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		asset, _ := Asset(name)
 		w.Header().Set("Content-Type", mime)
 		w.Write(asset)
 	}
 
-	return httprouter.Handle(handler)
+	return http.HandlerFunc(handler)
+}
+
+// Note: slightly biased towards first 8 characters of the alphabet, since 255
+// isn't a multiple of 62 (length of alphanum).  We don't really care that
+// much, though.
+func randString(n int) string {
+	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	var bytes = make([]byte, n)
+	rand.Read(bytes)
+	for i, b := range bytes {
+		bytes[i] = alphanum[b%byte(len(alphanum))]
+	}
+	return string(bytes)
 }
