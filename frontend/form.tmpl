@@ -1,0 +1,45 @@
+{{ define "title" }}Make A New Request{{ end }}
+
+{{ define "content" }}
+	<form class="form-horizontal" role="form" action="/submit" method="POST">
+		<div class="form-group">
+			<label for="inputItem" class="col-sm-2 control-label">Item</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" id="inputItem" name="item" placeholder="Item">
+				<p class="help-block">The item you want me to buy</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label for="inputQuantity" class="col-sm-2 control-label">Quantity</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" id="inputQuantity" name="quantity" placeholder="Quantity">
+				<p class="help-block">The number of items you want</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label for="inputMaxPrice" class="col-sm-2 control-label">Max. Price</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" id="inputMaxPrice" name="maxprice" placeholder="Max. Price">
+				<p class="help-block">The maximum price (in USD) that you want me to spend</p>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label for="inputNotes" class="col-sm-2 control-label">Notes</label>
+			<div class="col-sm-10">
+				<textarea class="form-control" id="inputNotes" name="notes" placeholder="Notes" rows=3></textarea>
+				<p class="help-block">Any additional notes</p>
+			</div>
+		</div>
+
+		<input type="hidden" name="token" value="{{ .token }}">
+
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" class="btn btn-primary">Request</button>
+			</div>
+		</div>
+	</form>
+{{ end }}
