@@ -142,10 +142,55 @@ func HandleNewRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
 			"token": randString(20),
 		})
 	if err != nil {
-		log.Printf("Error getting respondents: %s", err)
+		log.Printf("Error inserting respondent: %s", err)
 		http.Error(w, "database error", 500)
 		return
 	}
+
+	http.Redirect(w, r, "/admin/main", 303)
+}
+
+func HandleDeleteRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
+	db := c.Env["db"].(*sqlx.DB)
+
+	r.ParseForm()
+
+	id, err := strconv.ParseUint(r.Form.Get("id"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid id", 400)
+		return
+	}
+
+	tx, err := db.Beginx()
+	if err != nil {
+		log.Printf("Error creating transaction: %s", err)
+		http.Error(w, "database error", 500)
+		return
+	}
+
+	_, err = tx.NamedExec(`DELETE FROM respondents WHERE id=:id`,
+		map[string]interface{}{
+			"id": id,
+		})
+	if err != nil {
+		log.Printf("Error deleting respondent: %s", err)
+		http.Error(w, "database error", 500)
+		tx.Rollback()
+		return
+	}
+
+	_, err = tx.NamedExec(`DELETE FROM responses WHERE respondent=:id`,
+		map[string]interface{}{
+			"id": id,
+		})
+	if err != nil {
+		log.Printf("Error deleting responses: %s", err)
+		http.Error(w, "database error", 500)
+		tx.Rollback()
+		return
+	}
+
+	tx.Commit()
 
 	http.Redirect(w, r, "/admin/main", 303)
 }
@@ -196,7 +241,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 			"notes":      r.Form.Get("notes"),
 		})
 	if err != nil {
-		log.Printf("Error getting respondents: %s", err)
+		log.Printf("Error inserting response: %s", err)
 		http.Error(w, "database error", 500)
 		return
 	}
@@ -261,6 +306,7 @@ func main() {
 	admin.Use(auth)
 	admin.Get("/admin/main", RenderAdmin)
 	admin.Post("/admin/respondent", HandleNewRespondent)
+	admin.Post("/admin/remove_respondent", HandleDeleteRespondent)
 	m.Handle("/admin/*", admin)
 
 	// Static assets

@@ -1,6 +1,8 @@
 {{ define "title" }}Admin Page{{ end }}
 
 {{ define "content" }}
+	{{ $csrf_token := .csrf_token }}
+
 	<h2>Admin Page</h2>
 
 	<h3>Current Users</h3>
@@ -10,6 +12,7 @@
 				<th>ID</th>
 				<th>Name</th>
 				<th>Token</th>
+				<th>Commands</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -18,6 +21,15 @@
 				<td>{{ .ID }}</td>
 				<td>{{ .Name }}</td>
 				<td><a href="/form?token={{ .Token }}">{{ .Token }}</a></td>
+				<td>
+					<form class="form-inline" role="form" action="/admin/remove_respondent" method="POST">
+						<input type="hidden" name="csrf_token" value="{{ $csrf_token }}">
+						<input type="hidden" name="id" value="{{ .ID }}">
+						<button type="submit" class="btn btn-danger btn-xs">
+							<span class="glyphicon glyphicon-remove"></span> Delete
+						</button>
+					</form>
+				</td>
 			</tr>
 		{{ end }}
 		</tbody>
@@ -58,7 +70,7 @@
 			</div>
 		</div>
 
-		<input type="hidden" name="csrf_token" value="{{ .csrf_token }}">
+		<input type="hidden" name="csrf_token" value="{{ $csrf_token }}">
 
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
