@@ -55,15 +55,24 @@ func RenderForm(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := Respondent{}
-	err := db.Get(&resp, "SELECT * FROM respondents WHERE token=?", token)
+	err := db.Get(&resp, `SELECT * FROM respondents WHERE token=?`, token)
 	if err == sql.ErrNoRows {
 		http.Error(w, "invalid token", 403)
 		return
 	}
 
+	// Load this user's responses
+	responses := []Response{}
+	query := db.Rebind(`SELECT * FROM responses WHERE respondent = ? ORDER BY id ASC`)
+	err = db.Select(&responses, query, resp.ID)
+	if err != nil {
+		log.Printf("Error getting responses: %s", err)
+	}
+
 	err = renderTemplate(w, "form", M{
 		"token":      token,
 		"name":       resp.Name,
+		"responses":  responses,
 		"csrf_token": nosurf.Token(r),
 	})
 	if err != nil {
@@ -77,7 +86,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	// Load all respondents
 	respondents := []Respondent{}
-	err := db.Select(&respondents, "SELECT * FROM respondents ORDER BY id ASC")
+	err := db.Select(&respondents, `SELECT * FROM respondents ORDER BY id ASC`)
 	if err != nil {
 		log.Printf("Error getting respondents: %s", err)
 		http.Error(w, "database error", 500)
@@ -86,7 +95,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	// Load all responses
 	responses := []Response{}
-	err = db.Select(&responses, "SELECT * FROM responses ORDER BY id ASC")
+	err = db.Select(&responses, `SELECT * FROM responses ORDER BY id ASC`)
 	if err != nil {
 		log.Printf("Error getting responses: %s", err)
 		http.Error(w, "database error", 500)
@@ -224,7 +233,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	// Ensure token exists
 	resp := Respondent{}
-	err = db.Get(&resp, "SELECT * FROM respondents WHERE token=?", token)
+	err = db.Get(&resp, `SELECT * FROM respondents WHERE token=?`, token)
 	if err == sql.ErrNoRows {
 		http.Error(w, "invalid token", 403)
 		return
@@ -246,13 +255,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = renderTemplate(w, "success", M{
-		"token": token,
-	})
-	if err != nil {
-		log.Printf("Error rendering template: %s", err)
-		http.Error(w, "error rendering template", 500)
-	}
+	http.Redirect(w, r, "/form?token=" + token, 303)
 }
 
 func main() {
