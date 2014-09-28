@@ -39,7 +39,7 @@ func RenderIndex(w http.ResponseWriter, r *http.Request) {
 	err := renderTemplate(w, "index", nil)
 	if err != nil {
 		log.Printf("Error rendering template: %s", err)
-		http.Error(w, "error rendering template", 500)
+		renderError(w, "error rendering template", 500)
 	}
 }
 
@@ -50,14 +50,14 @@ func RenderForm(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	token := r.Form.Get("token")
 	if len(token) < 1 {
-		http.Error(w, "no user token found", 403)
+		renderError(w, "no user token found", 403)
 		return
 	}
 
 	resp := Respondent{}
 	err := db.Get(&resp, `SELECT * FROM respondents WHERE token=?`, token)
 	if err == sql.ErrNoRows {
-		http.Error(w, "invalid token", 403)
+		renderError(w, "invalid token", 403)
 		return
 	}
 
@@ -77,7 +77,7 @@ func RenderForm(c web.C, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("Error rendering template: %s", err)
-		http.Error(w, "error rendering template", 500)
+		renderError(w, "error rendering template", 500)
 	}
 }
 
@@ -89,7 +89,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 	err := db.Select(&respondents, `SELECT * FROM respondents ORDER BY id ASC`)
 	if err != nil {
 		log.Printf("Error getting respondents: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		return
 	}
 
@@ -98,7 +98,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 	err = db.Select(&responses, `SELECT * FROM responses ORDER BY id ASC`)
 	if err != nil {
 		log.Printf("Error getting responses: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		return
 	}
 
@@ -136,7 +136,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("Error rendering template: %s", err)
-		http.Error(w, "error rendering template", 500)
+		renderError(w, "error rendering template", 500)
 	}
 }
 
@@ -152,7 +152,7 @@ func HandleNewRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
 		})
 	if err != nil {
 		log.Printf("Error inserting respondent: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		return
 	}
 
@@ -166,14 +166,14 @@ func HandleDeleteRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseUint(r.Form.Get("id"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid id", 400)
+		renderError(w, "invalid id", 400)
 		return
 	}
 
 	tx, err := db.Beginx()
 	if err != nil {
 		log.Printf("Error creating transaction: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		return
 	}
 
@@ -183,7 +183,7 @@ func HandleDeleteRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
 		})
 	if err != nil {
 		log.Printf("Error deleting respondent: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		tx.Rollback()
 		return
 	}
@@ -194,7 +194,7 @@ func HandleDeleteRespondent(c web.C, w http.ResponseWriter, r *http.Request) {
 		})
 	if err != nil {
 		log.Printf("Error deleting responses: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		tx.Rollback()
 		return
 	}
@@ -211,23 +211,23 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	token := r.Form.Get("token")
 	if len(token) < 1 {
-		http.Error(w, "no user token found", 403)
+		renderError(w, "no user token found", 403)
 		return
 	}
 
 	// Validate input.
 	quantity, err := strconv.ParseUint(r.Form.Get("quantity"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid quantity", 400)
+		renderError(w, "invalid quantity", 400)
 		return
 	}
 	max_price, err := strconv.ParseUint(r.Form.Get("max_price"), 10, 64)
 	if err != nil {
-		http.Error(w, "invalid max price", 400)
+		renderError(w, "invalid max price", 400)
 		return
 	}
 	if len(r.Form.Get("item")) < 1 {
-		http.Error(w, "no item provided", 400)
+		renderError(w, "no item provided", 400)
 		return
 	}
 
@@ -235,7 +235,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 	resp := Respondent{}
 	err = db.Get(&resp, `SELECT * FROM respondents WHERE token=?`, token)
 	if err == sql.ErrNoRows {
-		http.Error(w, "invalid token", 403)
+		renderError(w, "invalid token", 403)
 		return
 	}
 
@@ -251,7 +251,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 		})
 	if err != nil {
 		log.Printf("Error inserting response: %s", err)
-		http.Error(w, "database error", 500)
+		renderError(w, "database error", 500)
 		return
 	}
 

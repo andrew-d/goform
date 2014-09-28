@@ -1,9 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"net/http"
-	"crypto/rand"
 )
 
 type M map[string]interface{}
@@ -31,6 +31,28 @@ func renderTemplate(w http.ResponseWriter, name string, data M) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	buf.WriteTo(w)
 	return nil
+}
+
+func renderError(w http.ResponseWriter, message string, code int) {
+	// Error data
+	data := M{
+		"message": message,
+		"code":    code,
+	}
+
+	// Create a buffer to temporarily write to and check if any errors were encounted.
+	buf := bufpool.Get()
+	defer bufpool.Put(buf)
+
+	err := templates["error"].ExecuteTemplate(buf, "base", data)
+	if err != nil {
+		http.Error(w, "error rendering error template o_0", 500)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(code)
+	buf.WriteTo(w)
 }
 
 func ServeAsset(name, mime string) http.Handler {
