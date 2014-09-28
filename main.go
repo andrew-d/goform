@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/goji/httpauth"
 	"github.com/jmoiron/sqlx"
@@ -110,6 +111,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 		Quantity   int
 		MaxPrice   int
 		Notes      string
+		Timestamp  int64
 	}
 
 	respondentNames := make(map[int64]string)
@@ -126,6 +128,7 @@ func RenderAdmin(c web.C, w http.ResponseWriter, r *http.Request) {
 			Quantity:   resp.Quantity,
 			MaxPrice:   resp.MaxPrice,
 			Notes:      resp.Notes,
+			Timestamp:  resp.Timestamp,
 		})
 	}
 
@@ -240,14 +243,15 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the new response
-	_, err = db.NamedExec(`INSERT INTO responses (respondent, item, quantity, max_price, notes) `+
-		`VALUES (:respondent, :item, :quantity, :max_price, :notes)`,
+	_, err = db.NamedExec(`INSERT INTO responses (respondent, item, quantity, max_price, notes, timestamp) `+
+		`VALUES (:respondent, :item, :quantity, :max_price, :notes, :timestamp)`,
 		map[string]interface{}{
 			"respondent": resp.ID,
 			"item":       r.Form.Get("item"),
 			"quantity":   quantity,
 			"max_price":  max_price,
 			"notes":      r.Form.Get("notes"),
+			"timestamp":  time.Now().UTC().Unix(),
 		})
 	if err != nil {
 		log.Printf("Error inserting response: %s", err)
@@ -255,7 +259,7 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/form?token=" + token, 303)
+	http.Redirect(w, r, "/form?token="+token, 303)
 }
 
 func main() {
@@ -267,6 +271,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer db.Close()
 
 	// Create tables
 	tx := db.MustBegin()

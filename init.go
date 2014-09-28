@@ -3,13 +3,27 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/oxtoacart/bpool"
 )
 
 var (
 	templates map[string]*template.Template
 	bufpool   *bpool.BufferPool
+
+	templateFuncs = template.FuncMap{
+		"humanizeTime": func(t time.Time) string {
+			return humanize.Time(t)
+		},
+		"humanizeTimeInt": func(t int64) string {
+			return humanize.Time(time.Unix(t, 0))
+		},
+		"unixToString": func(t int64) string {
+			return time.Unix(t, 0).String()
+		},
+	}
 )
 
 func init() {
@@ -31,7 +45,7 @@ func init() {
 			data, _ := Asset(asset)
 
 			// Mimic the ParseFiles function manually here
-			t := template.New(name)
+			t := template.New(name).Funcs(templateFuncs)
 			template.Must(t.Parse(string(data)))
 			template.Must(t.New("base").Parse(base))
 

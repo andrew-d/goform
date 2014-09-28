@@ -1,3 +1,5 @@
+*.db
+
 # Generated files
 resources.go
 descriptors.go

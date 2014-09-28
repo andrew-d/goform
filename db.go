@@ -1,7 +1,5 @@
 package main
 
-import ()
-
 type Respondent struct {
 	ID    int64  `db:"id"`
 	Name  string `db:"name"`
@@ -15,6 +13,7 @@ type Response struct {
 	Quantity   int    `db:"quantity"`
 	MaxPrice   int    `db:"max_price"`
 	Notes      string `db:"notes"`
+	Timestamp  int64  `db:"timestamp"`
 }
 
 var createStatements = []string{
@@ -30,6 +29,7 @@ var createStatements = []string{
 		quantity   INTEGER NOT NULL,
 		max_price  INTEGER NOT NULL,
 		notes      TEXT NOT NULL,
+		timestamp  INTEGER NOT NULL,
 
 		FOREIGN KEY(respondent) REFERENCES respondents(id)
 	)`,

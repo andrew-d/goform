@@ -6,6 +6,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/dustin/go-humanize",
+			"Rev": "2741ef0c092bc5a4642be9b86c4b7dac138c7c53"
+		},
+		{
 			"ImportPath": "github.com/goji/httpauth",
 			"Rev": "bba8bdb51c77e227cd876803d7d8d21d2ea0b47d"
 		},

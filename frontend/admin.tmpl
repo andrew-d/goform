@@ -40,6 +40,7 @@
 		<thead>
 			<tr>
 				<th>ID</th>
+				<th>Time</th>
 				<th>Respondent</th>
 				<th>Item</th>
 				<th>Quantity</th>
@@ -51,6 +52,9 @@
 		{{ range .responses }}
 			<tr>
 				<td>{{ .ID }}</td>
+				<td title="{{ unixToString .Timestamp }}">
+					{{ humanizeTimeInt .Timestamp }}
+				</td>
 				<td>{{ .Respondent }}</td>
 				<td>{{ .Item }}</td>
 				<td>{{ .Quantity }}</td>

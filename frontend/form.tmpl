@@ -50,6 +50,7 @@
 	<table class="table table-striped table-bordered">
 		<thead>
 			<tr>
+				<th>Time</th>
 				<th>Item</th>
 				<th>Quantity</th>
 				<th>Max Price</th>
@@ -59,6 +60,7 @@
 		<tbody>
 		{{ range .responses }}
 			<tr>
+				<td>{{ humanizeTimeInt .Timestamp }}</td>
 				<td>{{ .Item }}</td>
 				<td>{{ .Quantity }}</td>
 				<td>{{ .MaxPrice }}</td>
