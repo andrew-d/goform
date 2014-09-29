@@ -3,9 +3,9 @@
 {{ define "content" }}
 	{{ $csrf_token := .csrf_token }}
 
-	<h2>Admin Page</h2>
+	<h3>Admin Page</h3>
 
-	<h3>Current Users</h3>
+	<h4>Current Users</h4>
 	<table class="table table-striped table-bordered">
 		<thead>
 			<tr>
@@ -35,7 +35,7 @@
 		</tbody>
 	</table>
 
-	<h3>Responses</h3>
+	<h4>Responses</h4>
 	<table class="table table-striped table-bordered">
 		<thead>
 			<tr>
@@ -65,7 +65,7 @@
 		</tbody>
 	</table>
 
-	<h3>Add Respondent</h3>
+	<h4>Add Respondent</h4>
 	<form class="form-horizontal" role="form" action="/admin/respondent" method="POST">
 		<div class="form-group">
 			<label for="inputName" class="col-sm-2 control-label">Name</label>
