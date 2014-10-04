@@ -9,7 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/andrew-d/goform/ratelimit"
 	"github.com/goji/httpauth"
+	"github.com/hashicorp/golang-lru"
 	"github.com/jmoiron/sqlx"
 	"github.com/justinas/nosurf"
 	flag "github.com/ogier/pflag"
@@ -300,8 +302,33 @@ func main() {
 
 	auth := httpauth.SimpleBasicAuth("admin", flagAdminPassword)
 
+	// Rate limiter LRU cache
+	rlcache, _ := lru.New(128)
+
 	// Setup mux + middleware
 	m := web.New()
+	m.Use(func(c *web.C, h http.Handler) http.Handler {
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			// Get or insert the rate-limiter in the LRU cache.  Note that,
+			// while this is a bit racy, it's also not a problem - worst that
+			// happens is that we let a bit more through.
+			var rl *ratelimit.Limiter
+
+			if val, ok := rlcache.Get(r.RemoteAddr); ok {
+				rl = val.(*ratelimit.Limiter)
+			} else {
+				rl = ratelimit.New(3)
+				rlcache.Add(r.RemoteAddr, rl)
+			}
+			if rl.Limit() {
+				// Drop connection
+				http.Error(w, "too many requests", 429)
+				return
+			}
+			h.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(handler)
+	})
 	m.Use(middleware.RequestID)
 	m.Use(middleware.Logger)
 	m.Use(middleware.Recoverer)

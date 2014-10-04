@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/andrew-d/goform",
-	"GoVersion": "go1.3.1",
+	"GoVersion": "go1.3.3",
 	"Packages": [
 		"./..."
 	],
@@ -12,6 +12,10 @@
 		{
 			"ImportPath": "github.com/goji/httpauth",
 			"Rev": "bba8bdb51c77e227cd876803d7d8d21d2ea0b47d"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/golang-lru",
+			"Rev": "4dfff096c4973178c8f35cf6dd1a732a0a139370"
 		},
 		{
 			"ImportPath": "github.com/jmoiron/sqlx",
