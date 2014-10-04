@@ -233,6 +233,14 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 		renderError(w, "no item provided", 400)
 		return
 	}
+	if len(r.Form.Get("item")) > 512 {
+		renderError(w, "item too large", 400)
+		return
+	}
+	if len(r.Form.Get("notes")) > 4096 {
+		renderError(w, "notes too large", 400)
+		return
+	}
 
 	// Ensure token exists
 	resp := Respondent{}
