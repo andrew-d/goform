@@ -32,7 +32,7 @@ var (
 func init() {
 	flag.StringVar(&flagDatabaseType, "dbtype", "sqlite3", "database type")
 	flag.StringVar(&flagDatabaseConn, "dbconn", ":memory:", "database connection string")
-	flag.StringVar(&flagAdminPassword, "password", "s33kret", "admin password")
+	flag.StringVar(&flagAdminPassword, "password", "", "admin password")
 	flag.Uint16VarP(&flagListenPort, "port", "p", 8080, "default listen port")
 }
 
@@ -264,6 +264,9 @@ func HandleSubmit(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	flag.Parse()
+	if len(flagAdminPassword) == 0 {
+		log.Fatal("No admin password provided")
+	}
 
 	log.Println("Started")
 
