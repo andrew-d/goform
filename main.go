@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andrew-d/goform/ratelimit"
 	"github.com/goji/httpauth"
 	"github.com/hashicorp/golang-lru"
 	"github.com/jmoiron/sqlx"
+	"github.com/juju/ratelimit"
 	"github.com/justinas/nosurf"
 	flag "github.com/ogier/pflag"
 	"github.com/zenazn/goji/web"
@@ -309,18 +309,21 @@ func main() {
 	m := web.New()
 	m.Use(func(c *web.C, h http.Handler) http.Handler {
 		handler := func(w http.ResponseWriter, r *http.Request) {
+			// Rate-limit key is the hostname
+			rlkey := strings.Split(r.RemoteAddr, ":")[0]
+
 			// Get or insert the rate-limiter in the LRU cache.  Note that,
 			// while this is a bit racy, it's also not a problem - worst that
 			// happens is that we let a bit more through.
-			var rl *ratelimit.Limiter
+			var rl *ratelimit.Bucket
 
-			if val, ok := rlcache.Get(r.RemoteAddr); ok {
-				rl = val.(*ratelimit.Limiter)
+			if val, ok := rlcache.Get(rlkey); ok {
+				rl = val.(*ratelimit.Bucket)
 			} else {
-				rl = ratelimit.New(3)
-				rlcache.Add(r.RemoteAddr, rl)
+				rl = ratelimit.NewBucketWithRate(1, 60)
+				rlcache.Add(rlkey, rl)
 			}
-			if rl.Limit() {
+			if rl.TakeAvailable(1) == 0 {
 				// Drop connection
 				http.Error(w, "too many requests", 429)
 				return
